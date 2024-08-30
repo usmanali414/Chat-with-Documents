@@ -2,14 +2,13 @@
 Rag based chatbot to chat with your Documents
 
 
-Certainly! Below is the `README.md` file with your instructions converted into GitHub-friendly markdown format.
 
 ```markdown
 # Chat with Documents
 
 This repository contains the code for a Flask-based application that allows you to chat with documents. Follow the instructions below to set up the environment and run the application.
 
-![Demo](deom.png)
+![Demo](demo.png)
 
 ## Setup Instructions
 
@@ -49,7 +48,7 @@ The application will run locally, and you can access it at `http://127.0.0.1:500
 
 Here’s a preview of the application in action:
 
-![Demo Image](deom.png)
+![Demo Image](demo.png)
 
 ## Contributing
 
