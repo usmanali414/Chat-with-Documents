@@ -1,0 +1,75 @@
+
+ <!-- Process Button -->
+ <li class="item ">
+    <button id="processing_btn" onclick="processData();" class=" link flex border-0 w-100 pointer " {% if not uploaded_docs %} disabled  {% endif %}>
+        <i class='bx bx-chip'></i>
+      <span>Process Context </span>
+    </button>
+
+    <button id="loading_btn" class="btn-primary link flex border-0 w-100 d-none pointer"  disabled>
+        <i class='bx bx-chip'></i>
+      <span>Processing...
+        <div class="spinner-border spinner-border-sm mb-1" role="status"></div> 
+      </span>
+    </button>
+    
+    <button id="processed_btn"  class="bg-primary text-white link flex border-0 w-100 pointer {% if not processed_documents %} d-none {% endif %} " disabled >
+        <i class='bx bx-message-square-check'></i>
+      <span>Context Available</span>
+    </button>
+    <div id="responseContainer"></div> 
+   
+</li>
+  
+<script>
+    function processData() {
+        // Display the response in the responseContainer div
+        const responseContainer = document.getElementById('responseContainer');
+        const processing_btn = document.getElementById('processing_btn');
+        const loading_btn = document.getElementById('loading_btn');
+        const processed_btn = document.getElementById('processed_btn');
+
+        processing_btn.classList.add("d-none");
+        loading_btn.classList.remove("d-none");
+        if (!document.querySelector(".btn-primary").classList.contains("disabled")) {
+            fetch('/docs-process', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("processs")
+                
+                loading_btn.classList.add("d-none");
+                processed_btn.classList.remove("d-none");
+                // responseContainer.innerHTML = JSON.stringify(data);
+                responseContainer.innerHTML = `<div class="alert alert-info alert-dismissible fade show w-100 side-bar-alert" role="alert">
+                    <strong>Data Processing is Completed Please Save Index ...</strong> 
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>`;
+                
+    
+                    
+                    
+                
+                
+            })
+            .catch(error => {
+                // console.error('Error:', error);
+                console.log("error in process btn")
+                responseContainer.innerHTML = `<div class="alert alert-danger alert-dismissible fade show w-100 side-bar-alert" role="alert">
+                    <strong>Error: Data Could not Process</strong> 
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>`;
+            });
+        }
+        
+    }
+
+</script>

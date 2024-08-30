@@ -1,0 +1,41 @@
+<div class="">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-info alert-dismissible fade show w-100 side-bar-alert" role="alert">
+                <strong>{{ message }}</strong> 
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+           
+        {% endif %}
+    {% endwith %}
+
+    
+    {% if uploaded_docs %}
+
+        {% for doc in uploaded_docs %}
+        
+        <li class="item">
+            <div  class="link link-green flex">
+              <i class="bx bx-file"></i>
+              <span>{{doc}}</span>
+            </div>
+        </li>
+        
+           
+        {% endfor %}
+    {% else %}
+        
+        <div class="alert alert-warning alert-dismissible fade show w-100 side-bar-alert" role="alert">
+            <strong>No Data Available, Please Upload or check saved index data</strong> 
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+        </div>
+    {% endif %}
+   
+    
+  </div>

@@ -1,0 +1,355 @@
+{% extends 'base.html'%}
+
+{% include "./components/settings_modal.html" %}
+{% include "./components/load_index.html" %}
+{% include "./components/save_index.html" %}
+
+
+{% block side_nav %}
+
+<ul class="menu_item">
+    <div class="menu_title flex">
+        <span class="title">Tasks</span>
+        <span class="line"></span>
+    </div>
+      <a href="/" class=" link link-bg-green flex border-0 w-100 pointer">
+        <i class='bx bx-conversation'></i>
+        Documnet Chat
+      </a>
+    <div class="menu_title flex">
+      <span class="title">Document Chat</span>
+      <span class="line"></span>
+    </div>
+    <!-- Upload Document for CHAT DOCUMENT -->
+    <li class="item">
+        <form class=" " method="post" action="/upload" enctype="multipart/form-data">
+            <input type="hidden" name="redirect_page" value="data_retrieval_index ">
+            <div class="link flex" style="background-color: transparent; color: blueviolet;">
+                <i class='bx bx-folder' ></i>
+                <span>
+                    
+                    <div class="custom-file">
+                        <!-- <label for="document" class="p-2">Select Files</label> -->
+                        <input type="file" class="custom-file-input" id="document" name="files"  required onchange="updateLabel()" {% if multiple_file_selection  %} multiple {% endif %}>
+                        <label id="document-label" class="custom-file-label  pointer" for="document">Choose file</label> 
+                        
+                    </div>
+                </span>
+            </div>
+
+            <button  type="submit" class="link flex border-0 w-100 pointer" >
+                <i class='bx bx-upload'></i>
+            <span>Upload </span>
+            </button>
+
+        </form>  
+      
+    </li>
+
+
+    <div class="menu_title flex">
+      <span class="title">Documents</span>
+      <span class="line"></span>
+    </div>
+ 
+    <!-- Notification and Process Button -->
+    {% include "./components/notifications.html" %}
+
+    <!-- Button Save Index trigger modal -->
+    <button type="button" class=" link flex border-0 w-100 pointer " data-toggle="modal" data-target="#save_index_modal">
+        <i class='bx bx-chip'></i>
+        Process Content
+    </button>
+
+    <!-- Button Load trigger modal -->
+    <button type="button" class=" link flex border-0 w-100 pointer " data-toggle="modal" data-target="#load_index_modal">
+        <i class='bx bx-data'></i>
+        Load
+    </button>
+    <span>
+        {% if loaded_index %}
+        <span class="badge badge-dark">{{ loaded_index }}</span>
+        {% endif %}
+    </span>
+   
+  </ul>
+
+
+{% endblock %}
+
+
+{% block main_body %}
+
+<div class="main-body" id="main-body">
+
+    {% include "./components/top_bar.html" %}
+    
+    
+    <div class="d-flex">
+        <div class="mr-1" id="chatbot-box" style="width: 60%;"> 
+            <div class=" p-0 chat">
+                <div class="card">
+                    <div class="card-header msg_head">
+                        <div class="d-flex bd-highlight">
+                            <div class="img_cont">
+                                <img src="https://i.ibb.co/fSNP7Rz/icons8-chatgpt-512.png" class="rounded-circle user_img">
+                                <span class="online_icon"></span>
+                            </div>
+                            <div class="user_info text-left">
+                                <span>Chat with Document</span>
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <div id="messageFormeight" class="card-body msg_card_body">
+                        
+                        
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex">
+                        top_k: <input type="number" id="top_k_retrieval" name="top_k_retrieval" value="3" placeholder="3" autocomplete="off" class="form-controlform-control-sm mb-1" style="width: 50px;" required/>
+
+                            <form id="highlighChunks" class="mx-2">
+                                Highlighted PDF: <button type="button" id="download_pdf_btn" class="btn btn-sm btn-primary"  onclick="downloadHighlightChunks();">
+                                    <i class='bx bx-download' ></i>
+                                    Download
+                                </button>
+                                <button type="button" id="downloading_pdf_btn" class="btn btn-sm btn-primary d-none " disabled >
+                                    <div class="spinner-border spinner-border-sm " role="status"></div> 
+                                    Downloading ...
+                                </button>
+                            </form>
+                        </div>
+                        <form id="messageArea" class="input-group">
+                            <input type="text" id="text" name="msg" placeholder="Type your message..." autocomplete="off" class="form-control type_msg" required/>
+                            <div class="input-group-append ">
+                                <button type="submit" id="send" class="input-group-text send_btn"><i class='bx bx-send ' ></i></i></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-light rounded ml-1 p-2 overflow-auto" id="chart-box" style="width: 40%;max-height: 85vh;"> 
+            <h4 class="p-2  border-bottom border-info">PDF Files</h4>
+            <div id="show_d_msj"></div>
+            <div id="pdf_file_bar" class="row flex-column-reverse m-0">
+
+            </div>
+            
+            
+            
+        </div>
+    </div>
+   
+   
+
+</div>
+
+
+<script>
+
+
+
+function expandDrawer(){
+            const drawerContent = document.querySelector('.drawer-content');
+            drawerContent.style.display = 'block';
+        }
+function collapseDrawer() {
+    const drawerContent = document.querySelector('.drawer-content');
+    drawerContent.style.display = 'none';
+}
+
+function scrollChatToBottomDoc() {
+    var chatContainer = document.getElementById("messageFormeight");
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+$(document).ready(function() {
+   
+    
+
+    $("#messageArea").on("submit", function(event) {
+                var date = new Date();
+                var hour = date.getHours();
+                var minute = date.getMinutes();
+                var second = date.getSeconds();
+                var str_time = hour+":"+minute+":"+second;
+                var rawText = $("#text").val();
+                var top_k_retrieval = $("#top_k_retrieval").val();
+
+                
+                // var userHtml = '<div class="d-flex justify-content-end mb-4"><div class="msg_cotainer_send">' + rawText + '<span class="msg_time_send">'+ str_time + '</span> </div><div class="img_cont_msg"><img src="https://i.ibb.co/d6b84Xw/Untitled-design.png" class="rounded-circle user_img_msg"></div></div>';
+                var userHtml = '<div class="d-flex justify-content-end mb-4"><div class="msg_cotainer_send">' + rawText + '<span class="msg_time_send">'+ str_time + '</span> </div><div class="img_cont_msg"><img src="https://i.ibb.co/d5b84Xw/Untitled-design.png" class="rounded-circle user_img_msg"></div></div>';
+                
+                $("#text").val("");
+                $("#messageFormeight").append(userHtml);
+                // $("#userQueryBox").text(rawText);
+
+                $.ajax({
+                    data: {
+                        msg: rawText,
+                        top_k_retrieval:top_k_retrieval
+                    },
+                    type: "POST",
+                    url: "/retrieval-chat",
+                }).done(function(chat_output) {
+                    hour = date.getHours();
+                    minute = date.getMinutes();
+                    second = date.getSeconds();
+                str_time = hour+":"+minute+":"+second;
+                    // Split the response into an array using the delimiter
+                    let parts = chat_output.split('|split|');
+                    // Now, you can access the string and list elements
+                    let chat_output_response = parts[0];
+                    let pdf_file_name_list = parts.slice(1);
+                    
+                    $("#user_query").text(chat_output_response)
+                    var formatted_output = chat_output_response.replace(/Documents:/g, '</br><span class="documents-label" style="color:red; font-size:18px;  font-weight: bold;">Document File:</span>');
+                    formatted_output = formatted_output.replace(/Score:/g, '</br><span class="content-label" style="color:red; font-size: 18px;  font-weight: bold;"">Score:</span>');
+                    formatted_output = formatted_output.replace(/Page No:/g, '</br><span class="content-label" style="color:red; font-size: 18px;  font-weight: bold;"">Page No:</span>');
+                    formatted_output = formatted_output.replace(/Documents content:/g, '</br><span class="content-label" style="color:green; font-size: 18px;  font-weight: bold;"">Documents content:</span>');
+                    
+                    var pdfHTMLArray = [];
+                    for (var i = 0; i < pdf_file_name_list.length; i++) {
+                            var pdfHTML = `<div class="link flex">
+                                <i class="bx bx-file"></i>
+                                <span>${pdf_file_name_list[i]}</span>
+                            </div>`;
+                            pdfHTMLArray.push(pdfHTML);
+                            // $("#retrieval-doc").append($.parseHTML(pdfHTML));
+                        };
+                    // Join the array elements into a single string
+                    var combinedHTML = pdfHTMLArray.join('');
+                    
+                    var pdf_files_bar = `<div class=" border border-primary p-2 rounded  mb-2">
+                                            <h6 class="font-weight-bold text-success">Question:</h6>
+                                            <h6 id="userQueryBox" class="">${rawText}</h6>
+                                            <div id="retrieval-doc" class="d-flex flex-wrap mt-3 " >
+                                                ${combinedHTML}
+                                            </div>
+                                        </div>`
+                    
+                    $("#pdf_file_bar").append($.parseHTML(pdf_files_bar));
+                    
+
+                    var botHtml = `<div class="d-flex justify-content-start mb-4 text-left">
+                                        <div class="img_cont_msg">
+                                            <img src="https://i.ibb.co/fSNP7Rz/icons8-chatgpt-512.png" class="rounded-circle user_img_msg">
+                                        </div>
+                                        <div class="msg_cotainer">${ formatted_output}</br>
+                                            <span class="msg_time">${ str_time }</span>
+                                        </div>
+                                    </div>`;
+                    $("#messageFormeight").append($.parseHTML(botHtml));
+                    // $("#-plotButton").prop("disabled", false);
+
+                    scrollChatToBottomDoc();
+                });
+                event.preventDefault();
+            });
+
+
+});
+
+
+
+function _downloadHighlightChunks() {
+        
+        var form = document.getElementById('highlighChunks');
+        const download_pdf_btn = document.getElementById('download_pdf_btn')
+        const downloading_pdf_btn = document.getElementById('downloading_pdf_btn')
+        var show_msj = document.getElementById('show_d_msj')
+        var formData = new FormData(form);
+        download_pdf_btn.classList.add('d-none')
+        downloading_pdf_btn.classList.remove('d-none')
+        fetch('/download-highlight-pdf', {
+            method: 'POST',
+            body: formData
+        }).then(response => response.json())
+          .then(data => {
+              console.log(data);
+              download_pdf_btn.classList.remove('d-none')
+              downloading_pdf_btn.classList.add('d-none')
+              if (data.status === "success") {
+                  alert(data.message);
+                  show_msj.innerHTML = `<div class="alert alert-info alert-dismissible fade show w-100 side-bar-alert" role="alert">
+                      <strong>${data.message}</strong> 
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>`
+                  // location.reload();
+              }  else if(data.status === 'error'){
+                  // alert(data.message)
+                  show_msj.innerHTML = `<div class="alert alert-warning alert-dismissible fade show w-100 side-bar-alert" role="alert">
+                      <strong>${data.message}</strong> 
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>`
+              }
+              else {
+                  // alert("Error saving processed index");
+                  
+                  show_msj.innerHTML = `<div class="alert alert-danger alert-dismissible fade show w-100 side-bar-alert" role="alert">
+                      <strong>Error saving processed index</strong> 
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>`
+              }
+          });
+    }
+
+
+    function downloadHighlightChunks() {
+    var form = document.getElementById('highlighChunks');
+    const download_pdf_btn = document.getElementById('download_pdf_btn');
+    const downloading_pdf_btn = document.getElementById('downloading_pdf_btn');
+    var show_msj = document.getElementById('show_d_msj');
+    var formData = new FormData(form);
+    
+    download_pdf_btn.classList.add('d-none');
+    downloading_pdf_btn.classList.remove('d-none');
+
+    fetch('/download-highlight-pdf', {
+        method: 'POST',
+        body: formData
+    }).then(response => {
+        if (response.ok) {
+            return response.blob(); // Convert the response to a Blob
+        } else {
+            return response.json().then(data => {
+                throw new Error(data.message || 'An error occurred');
+            });
+        }
+    }).then(blob => {
+        // Create a link element, use it to download the Blob and then remove it
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'highlighted_pdfs.zip';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        download_pdf_btn.classList.remove('d-none');
+        downloading_pdf_btn.classList.add('d-none');
+    }).catch(error => {
+        console.error('Error:', error);
+        show_msj.innerHTML = `<div class="alert alert-danger alert-dismissible fade show w-100 side-bar-alert" role="alert">
+            <strong>${error.message}</strong> 
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+          </div>`;
+        download_pdf_btn.classList.remove('d-none');
+        downloading_pdf_btn.classList.add('d-none');
+    });
+}
+
+
+</script>
+
+{% endblock %}

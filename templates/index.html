@@ -1,0 +1,264 @@
+{% extends 'base.html'%}
+
+{% include "./components/settings_modal.html" %}
+{% include "./components/load_index.html" %}
+{% include "./components/save_index.html" %}
+
+{% block side_nav %}
+
+
+<ul class="menu_item">
+    <div class="menu_title flex">
+        <span class="title">Tasks</span>
+        <span class="line"></span>
+    </div>
+      <a href="/data-retrieval" class=" link link-bg-green flex border-0 w-100 pointer">
+        <i class='bx bx-file-find'></i>
+        Documents Retrieval
+      </a>
+
+    <div class="menu_title flex">
+      <span class="title">Document Chat</span>
+      <span class="line"></span>
+    </div>
+    <!-- Upload Document for CHAT DOCUMENT -->
+    <li class="item">
+        <form class=" " method="post" action="/upload" enctype="multipart/form-data">
+            <input type="hidden" name="redirect_page" value="index_page">
+            <div class="link flex" style="background-color: transparent; color: blueviolet;">
+                <i class='bx bx-folder' ></i>
+                <span>
+                    
+                    <div class="custom-file">
+                        <!-- <label for="document" class="p-2">Select Files</label> -->
+                        <input type="file" class="custom-file-input" id="document" name="files"  required onchange="updateLabel()" {% if multiple_file_selection  %} multiple {% endif %}>
+                        <label id="document-label" class="custom-file-label  pointer" for="document">Choose file</label> 
+                        
+                    </div>
+                </span>
+            </div>
+
+            <button  type="submit" class="link flex border-0 w-100 pointer" >
+                <i class='bx bx-upload'></i>
+            <span>Upload </span>
+            </button>
+
+        </form>
+        
+        
+      
+    </li>
+
+
+    <div class="menu_title flex">
+      <span class="title">Documents</span>
+      <span class="line"></span>
+    </div>
+ 
+    <!-- Notification and Process Button -->
+    {% include "./components/notifications.html" %}
+    
+    <div class="menu_title flex">
+        <span class="title">Process Documents</span>
+        <span class="line"></span>
+      </div>
+    <!-- Button Save Index trigger modal -->
+    <button type="button" class=" link flex border-0 w-100 pointer " data-toggle="modal" data-target="#save_index_modal">
+        <i class='bx bx-chip'></i>
+        Process Content
+    </button>
+    
+
+    <!-- Button Load trigger modal -->
+    <button type="button" class=" link flex border-0 w-100 pointer " data-toggle="modal" data-target="#load_index_modal">
+        <i class='bx bx-data'></i>
+        Load
+    </button>
+    <span>
+        {% if loaded_index %}
+        <span class="badge badge-dark">{{ loaded_index }}</span>
+        {% endif %}
+    </span>
+    
+    
+   
+   
+  </ul>
+
+
+{% endblock %}
+
+
+{% block main_body %}
+ 
+    
+<div class="main-body" id="main-body">
+    
+    {% include "./components/top_bar.html" %}
+    
+
+    
+    <div class="d-flex">
+        <div class="mr-1" id="chatbot-box" style="width: 100%;"> 
+            <div class=" p-0 chat">
+                <div class="card">
+                    <div class="card-header msg_head">
+                        <div class="d-flex bd-highlight">
+                            <div class="img_cont">
+                                <img src="https://i.ibb.co/fSNP7Rz/icons8-chatgpt-512.png" class="rounded-circle user_img">
+                                <span class="online_icon"></span>
+                            </div>
+                            <div class="user_info text-left">
+                                <span>Chat with Document</span>
+                                
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="messageFormeight" class="card-body msg_card_body">
+                        
+                        
+                    </div>
+
+                    <div class="card-footer">
+                       
+                        top_k: <input type="number" id="top_k" name="top_k" value="3" placeholder="3" autocomplete="off" class="form-controlform-control-sm mb-1" style="width: 50px;" required/>
+                        
+                        <form id="messageArea" class="input-group">
+                            <input type="text" id="text" name="user_query" placeholder="Type your message..." autocomplete="off" class="form-control type_msg" required/>
+                            <div class="input-group-append ">
+                                <button type="submit" id="send" class="input-group-text send_btn"><i class='bx bx-send ' ></i></i></button>
+                            </div>
+                        </form>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+   
+   
+
+</div>
+
+
+<script>
+
+function updateLabel() {
+        var input = document.getElementById('document');
+        var label = document.getElementById('document-label');
+        label.textContent = input.files[0].name;
+    }
+
+function expandDrawer(){
+            const drawerContent = document.querySelector('.drawer-content');
+            drawerContent.style.display = 'block';
+        }
+function collapseDrawer() {
+    const drawerContent = document.querySelector('.drawer-content');
+    drawerContent.style.display = 'none';
+}
+
+function scrollChatToBottomDoc() {
+    var chatContainer = document.getElementById("messageFormeight");
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+
+
+
+$(document).ready(function() {
+
+    $("#messageArea").on("submit", function(event) {
+                var date = new Date();
+                var hour = date.getHours();
+                var minute = date.getMinutes();
+                var second = date.getSeconds();
+                var str_time = hour+":"+minute+":"+second;
+                var rawText = $("#text").val();
+
+                
+                // var userHtml = '<div class="d-flex justify-content-end mb-4"><div class="msg_cotainer_send">' + rawText + '<span class="msg_time_send">'+ str_time + '</span> </div><div class="img_cont_msg"><img src="https://i.ibb.co/d5b84Xw/Untitled-design.png" class="rounded-circle user_img_msg"></div></div>';
+                var userHtml = '<div class="d-flex justify-content-end mb-4"><div class="msg_cotainer_send">' + rawText + '<span class="msg_time_send">'+ str_time + '</span> </div><div class="img_cont_msg"><img src="https://i.ibb.co/d5b84Xw/Untitled-design.png" class="rounded-circle user_img_msg"></div></div>';
+                
+                $("#text").val("");
+                $("#messageFormeight").append(userHtml);
+
+                // Accessing the selected radio button value using FQuery
+               
+                // var selected_model = $("#radioGroup input[name='options']:checked").val();
+
+                var user_qa_prompt = $("#user_qa_prompt").val();
+                var top_k = $("#top_k").val();
+
+                var temperature_value = $("#temperature_slider").val();
+                if (user_qa_prompt === ""){
+                    alert("Please insert Q&A prompt")
+                }
+
+                $.ajax({
+                    data: {
+                        user_query: rawText,
+                        user_qa_prompt: user_qa_prompt,
+                    
+                        top_k: top_k,
+                        
+
+                    },
+                    type: "POST",
+                    url: "/chat",
+                }).done(function(chat_output) {
+                    hour = date.getHours();
+                    minute = date.getMinutes();
+                    second = date.getSeconds();
+                    str_time = hour+":"+minute+":"+second;
+                    // $("#user_query").text(chat_output)
+                    
+                    if (chat_output.includes('"gpt_response"')) {
+                        // Parse the string into a JavaScript object
+                        var chat_obj = JSON.parse(chat_output);
+                         // **Replace line breaks with <br> tags and add indentation**
+                        var formattedResponse = chat_obj.gpt_response
+                            .replace(/\n/g, '<br>')  // Replace newlines with <br>
+                            .replace(/^\d+\.\s/gm, '&nbsp;&nbsp;&nbsp;&nbsp;$&'); // Add indentation to numbered items
+                        console.log("Formatted response:", formattedResponse); 
+                        alert('<pre>' + formattedResponse + '</pre>');
+                        var botHtml = `<div class="d-flex justify-content-start mb-4 text-left">
+                                            <div class="img_cont_msg">
+                                                <img src="https://i.ibb.co/fSNP7Rz/icons8-chatgpt-512.png" class="rounded-circle user_img_msg">
+                                            </div>
+                                            <div class="msg_cotainer">  <pre>` + formattedResponse + `</pre>   <span class="msg_time">'   ${str_time}   '</span>
+                                                <span class="badge badge-light "> prompt_tokens: ' ${chat_obj.tokens.prompt_tokens} '</span>
+                                            <span class="badge badge-light "> completion_tokens: ' ${chat_obj.tokens.completion_tokens} '</span> 
+                                            <span class="badge badge-light "> total_tokens: ' ${chat_obj.tokens.total_tokens} '</span>
+                                        </div>
+                                    </div>`;
+                    } else {
+
+                        var formattedResponse = chat_output
+                            .replace(/\n/g, '<br>');  // Replace newlines with <br>
+                            //#.replace(/^\d+\.\s/gm, '&nbsp;&nbsp;&nbsp;&nbsp;$&'); // Add indentation to numbered items
+                        //console.log("Formatted response:", formattedResponse); 
+                        //alert('<pre>' + formattedResponse + '</pre>');
+                        var botHtml = '<div class="d-flex justify-content-start mb-4 text-left"><div class="img_cont_msg"><img src="https://i.ibb.co/fSNP7Rz/icons8-chatgpt-512.png" class="rounded-circle user_img_msg"></div><div class="msg_cotainer">' + formattedResponse + '<span class="msg_time">' + str_time + '</span>  </div></div>';
+                        
+                    }
+
+                   
+
+                    $("#messageFormeight").append($.parseHTML(botHtml));
+                    // $("#-plotButton").prop("disabled", false);
+
+                    scrollChatToBottomDoc();
+                });
+                event.preventDefault();
+        });
+
+
+});
+
+</script>
+
+{% endblock %}

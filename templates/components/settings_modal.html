@@ -1,0 +1,110 @@
+<!-- Modal -->
+<div class="modal fade" id="settings_modal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Settings</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" >
+            <span aria-hidden="true">&times;</span>
+        </button>
+        </div>
+        <div class="modal-body">
+            <form id="settingsForm">
+                <div class="row">
+                    <div class="col-12">
+                        <!-- Model -->
+                        <div class="d-flex flex-column">
+                            Select Model:
+                            <div class="form-group d-flex align-items-center justify-content-between m-0">
+                                <select id="selected_llm_model_key" name="selected_llm_model_key" class="form-control form-control-sm w-100">
+                                    {% for key, model in llm_model_to_use.items() %}
+                                        <option value="{{ key }}" {% if key == default_llm_model_key %}selected{% endif %}>
+                                            {{ model['model_name'] }}  -  {{ model['service'] }} : {{ model['type'] }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Embeddings -->
+                        <div class="d-flex flex-column mt-2">
+                            Select Embeddings Model:
+                            <div class="form-group d-flex align-items-center justify-content-between m-0">
+                                <select id="selected_embedding_model_key" name="selected_embedding_model_key" class="form-control form-control-sm w-100">
+                                    {% for key, model in embedding_to_use.items() %}
+                                        <option value="{{ key }}" {% if key == default_embedding_model_key %}selected{% endif %}>
+                                            {{ model['name'] }} - {{ model['service'] }} : {{ model['type'] }} (dim: {{ model['lenght'] }} )
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </form>
+            <div id="setting_msj" class="mt-3"></div>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="location.reload()">Refresh and Close</button>
+        <button type="button" id="save_setting_btn" class="btn btn-primary" onclick="saveSettings()">Save changes</button>
+        <button type="button" id="saveing_setting_btn" class="btn btn-primary d-none" >
+            Saving...
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+        </button>
+        <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+        </div>
+    </div>
+    </div>
+</div>
+
+<script>
+    function reloadPage() {
+        location.reload();
+    }
+    function saveSettings() {
+        
+        var form = document.getElementById('settingsForm');
+        
+        
+        const save_setting_btn = document.getElementById('save_setting_btn')
+        const saveing_setting_btn = document.getElementById('saveing_setting_btn')
+        const show_msj = document.getElementById('setting_msj');
+
+
+
+        var formData = new FormData(form);
+        save_setting_btn.classList.add('d-none')
+        saveing_setting_btn.classList.remove('d-none')
+        fetch('/settings', {
+            method: 'POST',
+            body: formData
+        }).then(response => response.json())
+          .then(data => {
+              console.log(data);
+              save_setting_btn.classList.remove('d-none')
+              saveing_setting_btn.classList.add('d-none')
+              if (data.status === "success") {
+                //   alert(data.message);
+                  show_msj.innerHTML = `<div class="alert alert-info alert-dismissible fade show w-100 side-bar-alert" role="alert">
+                      <strong>${data.message}</strong> 
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>`
+                //   location.reload();
+              } else {
+                //   alert("Error updating settings");
+                  show_msj.innerHTML = `<div class="alert alert-danger alert-dismissible fade show w-100 side-bar-alert" role="alert">
+                      <strong>Error updating settings</strong> 
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>`
+              }
+          });
+    }
+</script>
+
+

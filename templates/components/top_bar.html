@@ -1,0 +1,89 @@
+<div class="d-flex">
+        
+
+
+    <!-- Button Settings trigger modal -->
+    <button type="button" class="link flex border-0 position-relative mr-1" data-toggle="modal" data-target="#settings_modal">
+        <i class='bx bx-cog'></i>
+        <span>Settings</span>
+        
+    </button>
+    <div class="link flex border-0 w-25 position-relative" onmouseover="expandDrawer()" onmouseout="collapseDrawer()">
+        <i class='bx bx-universal-access'></i>
+        <span>Prompts</span>
+
+        <div class="drawer-content rounded">
+            
+            
+
+            <!-- system and user prompt -->
+            <div id="prompts" class="prompts-container">
+                <div  class="  rounded p-3" style="background-color:#e9ecef;">
+
+                <!-- user_qa_prompt -->
+                        <div  class=" bg-light p-2 m-1 rounded" >
+                            <div class="d-flex justify-content-between  border-bottom border-info py-1">
+                                <h4 class="text-dark">User Q&A Prompt</h4>
+                                
+                                <button id="user_qa_prompt_reset" class="btn btn-outline-danger d-flex" onclick=" resetSystemPrompt()"><i class='bx bx-reset' style="height: auto;"></i>Reset</button>
+                            </div>
+                            
+                        
+                            
+                                <!-- <p>{{prompts.system}}</p> -->
+                            <div class="form-group py-2">
+                                <label class="text-dark">Instructions</label>
+                                <ul class="ml-5">
+                                    <li class="text-muted">Upload Pdf file and press "Process Context" it will get text from provided Pdf and turnd to "Context Available"</li>
+                                    <li class="text-muted">Later you have to press the "Save/Load" button you will save the context to local disk with proper name</li>
+                                    <li class="text-muted">Refresh the Page and load your saved context. You can use that as Context</li>
+                                    <li class="text-muted">Use <span class="font-weight-bold">{context_str}</span> to add Context</li>
+                                    <li class="text-muted">Use <span class="font-weight-bold">{query_str}</span> to add your Quer</li>
+                                    
+                                </ul>
+                                <textarea class="form-control" id="user_qa_prompt" rows="10" placeholder="Type your Q&A promt with {context_str} and {query_str} keyword or reset to defaults... " >{{prompts.user_qa_prompt}}</textarea>
+                            </div>
+                            
+                        
+
+                        </div> 
+                <!-- user_qa_prompt  -->
+            
+                </div>
+
+            </div>
+            
+        </div>
+    </div>
+
+
+        
+       
+</div>
+
+
+<script>
+
+function expandDrawer(){
+            const drawerContent = document.querySelector('.drawer-content');
+            drawerContent.style.display = 'block';
+        }
+function collapseDrawer() {
+    const drawerContent = document.querySelector('.drawer-content');
+    drawerContent.style.display = 'none';
+}
+
+var default_user_qa_prompt = $("#user_qa_prompt").val();
+
+
+function resetSystemPrompt() {
+        // Reset the system prompt to its default value
+        document.getElementById("user_qa_prompt").value = default_user_qa_prompt;
+    }
+
+
+
+</script>
+
+
+

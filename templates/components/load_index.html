@@ -1,0 +1,185 @@
+
+  <!-- Modal -->
+  <div class="modal fade" id="load_index_modal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staticBackdropLabel">
+            Load Saved Processd Documents
+          </h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="location.reload()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          
+          <div>
+            <form id="loadIndexDB">
+              <div class="row">
+                  <div class="col-12 mt-2">
+                    
+                    <strong>Load Saved Documents Vector</strong>
+                    <span>Saved collection name apears in dropdown if you dont see refresh the page. Each Embedding has its own saved collection if you dont see it please change the embedding model it will apear in dropdown in case it is saved.</span>
+                    <div class="d-flex align-items-center justify-content-between mt-2">
+                      
+                      
+                      <div class="form-group d-flex align-items-center justify-content-between m-1 w-75">
+                        <select id="selected_collection" name="selected_collection" class="form-control">
+                            {% for name in db_collections_list %}
+                                <option value="{{ name }}">
+                                    {{ name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                      </div>
+                      
+                      <div class="w-50 d-flex">
+                        <!-- Load -->
+                        <button type="button" id="load_btn" class="btn btn-success btn-block m-1 " onclick="loadIndexDB()" >
+                          <i class='bx bx-import'></i>
+                          <span>Load</span>
+                        </button>
+                        <!-- Process loadd -->
+                        <button type="button" id="loading_btn" class="btn btn-success btn-block m-1 d-none" disabled >
+                          Loading..
+                          <div class="spinner-border spinner-border-sm " role="status"></div> 
+                          
+                        </button>
+
+                        <!-- Delete -->
+                        <button type="button" id="delete_btn" class="btn btn-danger m-1 " onclick="deleteIndexDB()" >
+                          <i class='bx bx-trash'></i>
+                        </button>
+                        
+                        <!-- Deleting -->
+                        <button type="button" id="deleting_btn" class="btn btn-danger m-1 d-none"  >
+                          <div class="spinner-border spinner-border-sm " role="status"></div> 
+
+                        </button>
+                        
+                        
+                        
+                      </div>
+                      
+                    </div>
+                    
+                    
+                  </div>
+              </div>
+            </form>
+          </div>
+          <div id="load_index_msj" class="mt-3"></div>
+          
+        
+        </div>
+      
+      </div>
+    </div>
+  </div>
+
+
+<script>
+
+    function loadIndexDB() {
+        
+        var form = document.getElementById('loadIndexDB');
+        var selected_collection = document.getElementById("selected_collection").value;
+        const show_msj = document.getElementById('load_index_msj');
+        const load_btn = document.getElementById('load_btn')
+        const loading_btn = document.getElementById('loading_btn')
+
+        var formData = new FormData(form);
+
+        load_btn.classList.add('d-none')
+        loading_btn.classList.remove('d-none')
+        fetch('/load-index', {
+            method: 'POST',
+            body: formData
+        }).then(response => response.json())
+          .then(data => {
+              console.log(data);
+              load_btn.classList.remove('d-none')
+              loading_btn.classList.add('d-none')
+              if (data.status === "success") {
+                  // alert(data.message);
+                  show_msj.innerHTML = `<div class="alert alert-info alert-dismissible fade show w-100 side-bar-alert" role="alert">
+                      <strong>${data.message}</strong> 
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>`
+                //   location.reload();
+              }  else if(data.status === 'error'){
+                  // alert(data.message)
+                  show_msj.innerHTML = `<div class="alert alert-warning alert-dismissible fade show w-100 side-bar-alert" role="alert">
+                      <strong>${data.message}</strong> 
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>`
+              }
+              else {
+                  // alert("Error loading processed index");
+                  show_msj.innerHTML = `<div class="alert alert-danger alert-dismissible fade show w-100 side-bar-alert" role="alert">
+                      <strong>Error loading processed index</strong> 
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>`
+                  
+              }
+          });
+    }
+
+    function deleteIndexDB() {
+        
+        var form = document.getElementById('loadIndexDB');
+        var selected_collection = document.getElementById("selected_collection").value;
+        const show_msj = document.getElementById('load_index_msj');
+        const delete_btn = document.getElementById('delete_btn')
+        const deleting_btn = document.getElementById('deleting_btn')
+
+        var formData = new FormData(form);
+
+        delete_btn.classList.add('d-none')
+        deleting_btn.classList.remove('d-none')
+        fetch('/delete-index', {
+            method: 'DELETE',
+            body: formData
+        }).then(response => response.json())
+          .then(data => {
+              console.log(data);
+              delete_btn.classList.remove('d-none')
+              deleting_btn.classList.add('d-none')
+              if (data.status === "success") {
+                  // alert(data.message);
+                  show_msj.innerHTML = `<div class="alert alert-info alert-dismissible fade show w-100 side-bar-alert" role="alert">
+                      <strong>${data.message}</strong> 
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="location.reload()">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>`
+                //   location.reload();
+              }  else if(data.status === 'error'){
+                  // alert(data.message)
+                  show_msj.innerHTML = `<div class="alert alert-warning alert-dismissible fade show w-100 side-bar-alert" role="alert">
+                      <strong>${data.message}</strong> 
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>`
+              }
+              else {
+                  // alert("Error loading processed index");
+                  show_msj.innerHTML = `<div class="alert alert-danger alert-dismissible fade show w-100 side-bar-alert" role="alert">
+                      <strong>Error deleting selected index</strong> 
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>`
+                  
+              }
+          });
+    }
+
+</script>

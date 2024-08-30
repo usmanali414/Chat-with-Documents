@@ -1,0 +1,17 @@
+ctransformers[cuda]
+chromadb
+ctransformers
+Flask
+llama-index
+llama-index-embeddings-huggingface
+llama-index-embeddings-huggingface-optimum
+llama-index-embeddings-openai
+llama-index-llms-openai
+loadenv
+pypdf
+sentence-transformers
+torch
+torchvision
+transformers
+huggingface-hub
+PyMuPDFb
